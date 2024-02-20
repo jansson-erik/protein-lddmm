@@ -10,7 +10,7 @@ from forward import Forward
 from optimize_list import Optimize_list
 
 ```
-
+This notebook reproduces the paper experiments. 
 First, we set up the experiment parameters. 
 We choose an image resolution of 50x 50 pixels. 
 The protein has a length of 214 $C-\alpha$ atoms. 
@@ -160,19 +160,19 @@ graphics.spaceplot(da2,'Greens_r', save = True, filename = 'target.pdf',dpi = 15
 
 
     
-![png](output_9_1.png)
+![png](images/output_9_1.png)
     
 
 
 
     
-![png](output_9_2.png)
+![png](images/output_9_2.png)
     
 
 
 
     
-![png](output_9_3.png)
+![png](images/output_9_3.png)
     
 
 
@@ -218,7 +218,7 @@ fig,ax = graphics.imagegridplot(image_dict,shape,span, colnames = cols, rownames
 
 
     
-![png](output_11_0.png)
+![png](images/output_11_0.png)
     
 
 
@@ -487,19 +487,19 @@ graphics.spaceplot(da2,'Greens_r')
 
 
     
-![png](output_13_3.png)
+![png](images/output_13_3.png)
     
 
 
 
     
-![png](output_13_4.png)
+![png](images/output_13_4.png)
     
 
 
 
     
-![png](output_13_5.png)
+![png](images/output_13_5.png)
     
 
 
@@ -575,6 +575,6 @@ plt.xlabel('Number of projections')
 
 
     
-![png](output_15_0.png)
+![png](images/output_15_0.png)
     
 
