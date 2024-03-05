@@ -578,3 +578,152 @@ plt.xlabel('Number of projections')
 ![png](images/output_15_0.png)
     
 
+
+```python
+#slope estimation
+from scipy.stats import linregress
+print(linregress(np.log([4,8,16,32,64,128,256,512]),np.log(average_scores[2:] ))[0]) #without first point
+
+print(linregress(np.log([2,4,8,16,32,64,128,256,512]),np.log(average_scores[1:] ))[0]) #with first point
+```
+
+    -0.5140856167810125
+    -0.48390201110103165
+
+
+
+```python
+
+M = 20
+L = 6
+projections_vector = [10,50,100]
+noise_levels = [0.1,0.2,0.4,0.8,1.2,2.4]
+scores_noise_test = np.zeros((3,L,M))
+for i in range(3):
+    No_projections = projections_vector[i]
+    for k in range(L):
+        noise_level = noise_levels[k]
+        print("running for:"+ str(No_projections)+" projection images, with noise level:"+str(noise_level))    
+        for m in range(M):
+            np.random.seed(0)
+            forward = Forward(No_projections) 
+
+            np.random.seed(i*1000+m*100*i+m*(0.5*i**2-3/2*i + 1))
+            data = Data(N, grid,forward_model = forward, blob_size=blob_size, noise_sigma=noise_level) # create data 
+    
+            optimize = Optimize_list(data,h) #create optimization problem 
+
+            u_full = np.zeros((100,N,3,3))
+
+            for j in range(50):
+                u_full = u_full- 0.00001*optimize.grad(u_full)
+
+            out = optim.minimize(fg,u_full.flatten(),jac = True, method = 'L-BFGS-B', options = {'ftol': 1e-25,'gtol':1e-25})
+
+            u_full = out.x.reshape((100,N,3,3))
+            R_full = optimize.euler(u_full)
+
+
+            R1 = R_full[-1]
+            template_model = data.template_model
+            def_model = forward.act(R1, template_model)
+            def_model_pc = forward.M(def_model)
+
+            da = forward.M(def_model)
+            scores_noise_test[i,k,m] = procrustes(da2,da)[-1]
+
+        
+
+
+```
+
+    running for:10 projection images, with noise level:0.1
+    running for:10 projection images, with noise level:0.2
+    running for:10 projection images, with noise level:0.4
+    running for:10 projection images, with noise level:0.8
+    running for:10 projection images, with noise level:1.2
+    running for:10 projection images, with noise level:2.4
+    running for:50 projection images, with noise level:0.1
+    running for:50 projection images, with noise level:0.2
+    running for:50 projection images, with noise level:0.4
+    running for:50 projection images, with noise level:0.8
+    running for:50 projection images, with noise level:1.2
+    running for:50 projection images, with noise level:2.4
+    running for:100 projection images, with noise level:0.1
+    running for:100 projection images, with noise level:0.2
+    running for:100 projection images, with noise level:0.4
+    running for:100 projection images, with noise level:0.8
+    running for:100 projection images, with noise level:1.2
+    running for:100 projection images, with noise level:2.4
+
+
+
+```python
+from matplotlib.gridspec import GridSpec
+import matplotlib.pyplot as plt
+
+fig=plt.figure()
+
+gs=GridSpec(3,2) # 2 rows, 3 columns
+
+ax1=fig.add_subplot(gs[:,0]) # First row, first column
+ax2=fig.add_subplot(gs[0,1]) # First row, second column
+ax3=fig.add_subplot(gs[1,1]) # First row, third column
+ax4=fig.add_subplot(gs[2,1])
+
+
+ax2.semilogy([0.1,0.2,0.4,0.8,1.2,2.4],np.mean(scores_noise_test[0,:,:],axis = 1),'--o', markersize = 5, label='10 projections')
+ax2.semilogy([0.1,0.2,0.4,0.8,1.2,2.4], np.quantile(scores_noise_test[0,:,:],0.90,axis = 1),'--', markersize = 5,c = 'k', label='90% quantiles')
+ax2.semilogy([0.1,0.2,0.4,0.8,1.2,2.4], np.quantile(scores_noise_test[0,:,:],0.10,axis = 1),'--', markersize = 5,c = 'k')
+
+ax2.get_xaxis().set_visible(False)
+ax2.yaxis.tick_right()
+ax2.set_ylabel('log Procrustes \n score (Å)')
+ax2.yaxis.set_label_position("right")
+
+ax3.semilogy([0.1,0.2,0.4,0.8,1.2,2.4],np.mean(scores_noise_test[1,:,:],axis = 1),'--*', markersize = 5,c = 'tab:orange', label='50 projections')
+ax3.semilogy([0.1,0.2,0.4,0.8,1.2,2.4], np.quantile(scores_noise_test[1,:,:],0.90,axis = 1),'--', markersize = 5,c = 'k', label='90% quantiles')
+ax3.semilogy([0.1,0.2,0.4,0.8,1.2,2.4], np.quantile(scores_noise_test[1,:,:],0.10,axis = 1),'--', markersize = 5,c = 'k')
+ax3.yaxis.tick_right()
+ax3.set_ylabel('log Procrustes \n  score (Å)')
+ax3.yaxis.set_label_position("right")
+ax3.get_xaxis().set_visible(False)
+
+ax4.semilogy([0.1,0.2,0.4,0.8,1.2,2.4],np.mean(scores_noise_test[2,:,:],axis = 1),'--d', markersize = 5,c = 'tab:green')
+ax4.semilogy([0.1,0.2,0.4,0.8,1.2,2.4], np.quantile(scores_noise_test[2,:,:],0.90,axis = 1),'--', markersize = 5,c = 'k', label='90% quantiles')
+ax4.semilogy([0.1,0.2,0.4,0.8,1.2,2.4], np.quantile(scores_noise_test[2,:,:],0.10,axis = 1),'--', markersize = 5,c = 'k')
+ax4.yaxis.tick_right()
+ax4.legend()
+ax4.set_ylabel('log Procrustes \n score (Å)')
+ax4.yaxis.set_label_position("right")
+ax4.set_xlabel('Noise standard deviation')
+
+
+ax1.semilogy([0.1,0.2,0.4,0.8,1.2,2.4],np.mean(scores_noise_test[0,:,:],axis = 1),'--o', markersize = 10, label='10 projections')
+ax1.semilogy([0.1,0.2,0.4,0.8,1.2,2.4], np.mean(scores_noise_test[1,:,:],axis = 1),'--*', markersize = 10, label='50 projections')
+ax1.semilogy([0.1,0.2,0.4,0.8,1.2,2.4], np.mean(scores_noise_test[2,:,:],axis = 1),'--d', markersize = 10,label = '100 projections')
+
+ax1.legend()
+ax1.set_ylabel('log Procrustes \n score (Å)')
+ax1.set_xlabel('Noise standard deviation')
+#plt.savefig('proc_plot_noise.pdf',dpi = 150)
+
+```
+
+
+    
+![png](images/output_18_0.png)
+    
+
+
+
+```python
+scores = np.loadtxt('scores.txt')
+M = 20
+scores_noise_test = np.loadtxt('scores_noise_test.txt').reshape((3,6,20))
+```
+
+
+```python
+
+```
