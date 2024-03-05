@@ -65,7 +65,7 @@ class Data:
         return positions[frame, i0:i1]
     def select_positions(filename,top =None ):
         """
-        This functions returns the positions of the CA atoms in a given backbone. Note that the positions are scaled to give positions in Angstroms. 
+        This functions returns the positions of the CA atoms in a given backbone. 
 
         Parameters
         ----------
